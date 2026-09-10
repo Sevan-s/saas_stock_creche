@@ -21,7 +21,7 @@ export const Register: React.FC = () => {
   const [nomCreche, setNomCreche] = useState('');
   const [codePostal, setCodePostal] = useState('');
   const [ville, setVille] = useState('');
-  const [adresse, setAdresse] = useState('');
+  // const [adresse, setAdresse] = useState('');
   const [telephone, setTelephone] = useState('');
   const [codeRattachement, setCodeRattachement] = useState('');
   const [prenom, setPrenom] = useState('');
@@ -59,7 +59,7 @@ export const Register: React.FC = () => {
         }
         const res = await API.post('/auth/register-creche', {
           nomCreche,
-          adresse,
+          // adresse,
           codePostal,
           ville,
           telephone,
