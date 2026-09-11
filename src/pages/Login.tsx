@@ -81,8 +81,12 @@ export const Login: React.FC = () => {
                             <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-start gap-3">
                                 <HeartHandshake className="w-5 h-5 text-teal-200 shrink-0 mt-0.5" />
                                 <div>
-                                    <h3 className="text-xs font-bold">Suivi hygiène & conformité PMI</h3>
-                                    <p className="text-[11px] text-teal-100/80">Traçabilité des lots et respect strict des protocoles sanitaires.</p>
+                                    <h3 className="text-xs font-bold">Suivi hygiène
+                                         {/* & conformité PMI */}
+                                         </h3>
+                                    <p className="text-[11px] text-teal-100/80">Traçabilité des lots 
+                                    {/* et respect strict des protocoles sanitaires. */}
+                                    </p>
                                 </div>
                             </div>
                             <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-start gap-3">
@@ -96,7 +100,7 @@ export const Login: React.FC = () => {
                     </div>
                     <div className="pt-6 border-t border-white/10 flex items-center justify-between text-[11px] text-teal-200">
                         <span>● Données chiffrées & certifiées</span>
-                        <span>v2.4 Crèche Connect</span>
+                        {/* <span>v2.4 Crèche Connect</span> */}
                     </div>
                 </div>
                 <div className="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between bg-white">
