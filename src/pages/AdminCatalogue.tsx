@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, FolderPlus, PackagePlus, AlertCircle, CheckCircle2, Trash2, ArrowUpDown } from 'lucide-react';
+import { Plus, FolderPlus, PackagePlus, AlertCircle, CheckCircle2, Trash2, ArrowUpDown, Edit2, X, Check } from 'lucide-react';
 import API from '../api/axios';
 
 interface Categorie {
@@ -33,6 +33,9 @@ export const AdminCatalogue: React.FC = () => {
     const [seuilAlerte, setSeuilAlerte] = useState<number | ''>(5);
     const [unite, setUnite] = useState('unité');
     const [sortBy, setSortBy] = useState<SortOption>('nom');
+
+    // État pour la gestion du produit en cours d'édition
+    const [editingProduct, setEditingProduct] = useState<Produit | null>(null);
 
     const fetchData = async () => {
         setLoading(true);
@@ -133,6 +136,30 @@ export const AdminCatalogue: React.FC = () => {
         }
     };
 
+    const handleUpdateProduct = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingProduct) return;
+
+        try {
+            const catId = typeof editingProduct.categorie === 'object' ? editingProduct.categorie._id : editingProduct.categorie;
+
+            const res = await API.put(`/items/${editingProduct._id}`, {
+                nom: editingProduct.nom,
+                categorie: catId,
+                fournisseur: editingProduct.fournisseur,
+                quantite: Number(editingProduct.quantite) || 0,
+                seuilAlerte: Number(editingProduct.seuilAlerte) || 0,
+                unite: editingProduct.unite
+            });
+
+            setMessage({ type: 'success', text: 'Article mis à jour avec succès.' });
+            setEditingProduct(null);
+            fetchData();
+        } catch (err: any) {
+            setMessage({ type: 'error', text: err.response?.data?.message || 'Erreur lors de la modification de l\'article.' });
+        }
+    };
+
     const handleDeleteProduct = async (id: string, nom: string) => {
         if (!window.confirm(`Supprimer l'article "${nom}" ?`)) return;
 
@@ -228,6 +255,7 @@ export const AdminCatalogue: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
                 <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div className="flex items-center gap-2 text-indigo-600 font-bold text-lg">
                         <PackagePlus className="w-5 h-5" />
@@ -326,6 +354,7 @@ export const AdminCatalogue: React.FC = () => {
                     </form>
                 </div>
             </div>
+
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <h2 className="text-lg font-bold text-slate-800">Articles enregistrés ({produits.length})</h2>
@@ -367,20 +396,151 @@ export const AdminCatalogue: React.FC = () => {
                                             {prod.fournisseur && <span>Fournisseur : {prod.fournisseur}</span>}
                                         </div>
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleDeleteProduct(prod._id, prod.nom)}
-                                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                                        title="Supprimer l'article"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setEditingProduct(prod)}
+                                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                            title="Modifier l'article"
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteProduct(prod._id, prod.nom)}
+                                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                            title="Supprimer l'article"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
                             );
                         })}
                     </div>
                 )}
             </div>
+
+            {/* MODALE D'ÉDITION ARTICLE */}
+            {editingProduct && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-4">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <h3 className="text-lg font-bold text-slate-800">Modifier l'article</h3>
+                            <button
+                                type="button"
+                                onClick={() => setEditingProduct(null)}
+                                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleUpdateProduct} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Désignation</label>
+                                <input
+                                    type="text"
+                                    value={editingProduct.nom}
+                                    onChange={(e) => setEditingProduct({ ...editingProduct, nom: e.target.value })}
+                                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Catégorie</label>
+                                    <select
+                                        value={typeof editingProduct.categorie === 'object' ? editingProduct.categorie._id : editingProduct.categorie}
+                                        onChange={(e) => setEditingProduct({ ...editingProduct, categorie: e.target.value })}
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                        required
+                                    >
+                                        {categories.map((cat) => (
+                                            <option key={cat._id} value={cat._id}>{cat.nom}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Fournisseur</label>
+                                    <input
+                                        type="text"
+                                        list="fournisseurs-list-edit"
+                                        value={editingProduct.fournisseur || ''}
+                                        onChange={(e) => setEditingProduct({ ...editingProduct, fournisseur: e.target.value })}
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                    />
+                                    <datalist id="fournisseurs-list-edit">
+                                        {fournisseursExistants.map((f, index) => (
+                                            <option key={index} value={f} />
+                                        ))}
+                                    </datalist>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Quantité</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={editingProduct.quantite}
+                                        onChange={(e) => setEditingProduct({ ...editingProduct, quantite: Number(e.target.value) })}
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Unité</label>
+                                    <select
+                                        value={editingProduct.unite || 'unité'}
+                                        onChange={(e) => setEditingProduct({ ...editingProduct, unite: e.target.value })}
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                    >
+                                        <option value="unité">unité(s)</option>
+                                        <option value="boîte">boîte(s)</option>
+                                        <option value="paquet">paquet(s)</option>
+                                        <option value="flacon">flacon(s)</option>
+                                        <option value="rouleau">rouleau(x)</option>
+                                        <option value="kg">kg</option>
+                                        <option value="litre">litre(s)</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Seuil Alerte</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={editingProduct.seuilAlerte}
+                                        onChange={(e) => setEditingProduct({ ...editingProduct, seuilAlerte: Number(e.target.value) })}
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingProduct(null)}
+                                    className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                                >
+                                    <Check className="w-4 h-4" />
+                                    Enregistrer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
