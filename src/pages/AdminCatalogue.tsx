@@ -123,7 +123,7 @@ export const AdminCatalogue: React.FC = () => {
             });
 
             setMessage({ type: 'success', text: 'Article ajouté au catalogue.' });
-            
+
             setNomProduit('');
             setFournisseur('');
             setQuantite(0);
@@ -143,7 +143,7 @@ export const AdminCatalogue: React.FC = () => {
         try {
             const catId = typeof editingProduct.categorie === 'object' ? editingProduct.categorie._id : editingProduct.categorie;
 
-            const res = await API.put(`/items/${editingProduct._id}`, {
+            await API.put(`/items/${editingProduct._id}`, {
                 nom: editingProduct.nom,
                 categorie: catId,
                 fournisseur: editingProduct.fournisseur,
@@ -202,9 +202,8 @@ export const AdminCatalogue: React.FC = () => {
             </div>
 
             {message && (
-                <div className={`p-4 rounded-xl flex items-center gap-3 text-sm font-medium ${
-                    message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
-                }`}>
+                <div className={`p-4 rounded-xl flex items-center gap-3 text-sm font-medium ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
+                    }`}>
                     {message.type === 'success' ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
                     {message.text}
                 </div>
